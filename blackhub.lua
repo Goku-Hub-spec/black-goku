@@ -19,10 +19,9 @@ local SpeedEnabled = false
 local SpeedPercent = 16  
 
 local JumpEnabled = false
-local JumpPercent = 50   
+local JumpPercent = 60
 
-local InfiniteJumpEnabled = false
-local NoclipEnabled = false
+local FOVPercent = 50
 
 --==================================================
 -- 1. BASE DE LA PANTALLA
@@ -34,7 +33,7 @@ ScreenGui.ResetOnSpawn = false
 
 -- 2. VENTANA PRINCIPAL (Más larga a los costados, centrada y semi-transparente)
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "VentanaPrincipal"
+MainFrame.Name = "VentanaGeneral"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25) 
 MainFrame.BackgroundTransparency = 0.35                 
@@ -73,15 +72,15 @@ Titulo.TextSize = 15
 Titulo.Font = Enum.Font.GothamBold
 
 -- 4. BOTONES EN LA LISTA IZQUIERDA
-local BotonLista1 = Instance.new("TextButton")
-BotonLista1.Parent = ListaIzquierda
-BotonLista1.BackgroundTransparency = 1
-BotonLista1.Size = UDim2.new(1, 0, 0, 35)
-BotonLista1.Position = UDim2.new(0, 0, 0, 60)          
-BotonLista1.Text = "• Principal"
-BotonLista1.TextColor3 = Color3.fromRGB(255, 255, 255)
-BotonLista1.TextSize = 14
-BotonLista1.Font = Enum.Font.GothamBold
+local BotonListaGeneral = Instance.new("TextButton")
+BotonListaGeneral.Parent = ListaIzquierda
+BotonListaGeneral.BackgroundTransparency = 1
+BotonListaGeneral.Size = UDim2.new(1, 0, 0, 35)
+BotonListaGeneral.Position = UDim2.new(0, 0, 0, 60)          
+BotonListaGeneral.Text = "• General"
+BotonListaGeneral.TextColor3 = Color3.fromRGB(255, 255, 255)
+BotonListaGeneral.TextSize = 14
+BotonListaGeneral.Font = Enum.Font.GothamBold
 
 local BotonLista2 = Instance.new("TextButton")
 BotonLista2.Parent = ListaIzquierda
@@ -94,15 +93,15 @@ BotonLista2.TextSize = 14
 BotonLista2.Font = Enum.Font.GothamBold
 
 -- 5. CONTENEDORES DE PESTAÑAS (ZONA DERECHA)
-local PaginaPrincipal = Instance.new("ScrollingFrame")
-PaginaPrincipal.Name = "PaginaPrincipal"
-PaginaPrincipal.Parent = MainFrame
-PaginaPrincipal.BackgroundTransparency = 1
-PaginaPrincipal.BorderSizePixel = 0
-PaginaPrincipal.Size = UDim2.new(1, -140, 1, -60)
-PaginaPrincipal.Position = UDim2.fromOffset(135, 50)
-PaginaPrincipal.ScrollBarThickness = 3
-PaginaPrincipal.Visible = true
+local PaginaGeneral = Instance.new("ScrollingFrame")
+PaginaGeneral.Name = "PaginaGeneral"
+PaginaGeneral.Parent = MainFrame
+PaginaGeneral.BackgroundTransparency = 1
+PaginaGeneral.BorderSizePixel = 0
+PaginaGeneral.Size = UDim2.new(1, -140, 1, -60)
+PaginaGeneral.Position = UDim2.fromOffset(135, 50)
+PaginaGeneral.ScrollBarThickness = 3
+PaginaGeneral.Visible = true
 
 local PaginaCombat = Instance.new("ScrollingFrame")
 PaginaCombat.Name = "PaginaCombat"
@@ -114,27 +113,101 @@ PaginaCombat.Position = UDim2.fromOffset(135, 50)
 PaginaCombat.ScrollBarThickness = 3
 PaginaCombat.Visible = false
 
+local PaginaPlayer = Instance.new("ScrollingFrame")
+PaginaPlayer.Name = "PaginaPlayer"
+PaginaPlayer.Parent = MainFrame
+PaginaPlayer.BackgroundTransparency = 1
+PaginaPlayer.BorderSizePixel = 0
+PaginaPlayer.Size = UDim2.new(1, -140, 1, -60)
+PaginaPlayer.Position = UDim2.fromOffset(135, 50)
+PaginaPlayer.ScrollBarThickness = 3
+PaginaPlayer.Visible = false
+
+local PaginaSettings = Instance.new("ScrollingFrame")
+PaginaSettings.Name = "PaginaSettings"
+PaginaSettings.Parent = MainFrame
+PaginaSettings.BackgroundTransparency = 1
+PaginaSettings.BorderSizePixel = 0
+PaginaSettings.Size = UDim2.new(1, -140, 1, -60)
+PaginaSettings.Position = UDim2.fromOffset(135, 50)
+PaginaSettings.ScrollBarThickness = 3
+PaginaSettings.Visible = false
+
 local layout1 = Instance.new("UIListLayout")
 layout1.Padding = UDim.new(0, 6)
-layout1.Parent = PaginaPrincipal
+layout1.Parent = PaginaGeneral
 
 local layout2 = Instance.new("UIListLayout")
 layout2.Padding = UDim.new(0, 6)
 layout2.Parent = PaginaCombat
 
-BotonLista1.MouseButton1Click:Connect(function()
-    PaginaPrincipal.Visible = true
+local layout3 = Instance.new("UIListLayout")
+layout3.Padding = UDim.new(0, 6)
+layout3.Parent = PaginaPlayer
+
+local layout4 = Instance.new("UIListLayout")
+layout4.Padding = UDim.new(0, 6)
+layout4.Parent = PaginaSettings
+
+BotonListaGeneral.MouseButton1Click:Connect(function()
+    PaginaGeneral.Visible = true
     PaginaCombat.Visible = false
-    BotonLista1.TextColor3 = Color3.fromRGB(255, 255, 255)
-    BotonLista2.TextColor3 = Color3.fromRGB(180, 180, 180)
+    PaginaPlayer.Visible = false
+    PaginaSettings.Visible = false
+    BotonListaGeneral.TextColor3 = Color3.fromRGB(255, 255, 255)
 end)
 
 BotonLista2.MouseButton1Click:Connect(function()
-    PaginaPrincipal.Visible = false
+    PaginaGeneral.Visible = false
     PaginaCombat.Visible = true
-    BotonLista1.TextColor3 = Color3.fromRGB(180, 180, 180)
+    PaginaPlayer.Visible = false
+    PaginaSettings.Visible = false
+    BotonListaGeneral.TextColor3 = Color3.fromRGB(180, 180, 180)
     BotonLista2.TextColor3 = Color3.fromRGB(255, 255, 255)
 end)
+
+local BotonListaPlayer = Instance.new("TextButton")
+BotonListaPlayer.Parent = ListaIzquierda
+BotonListaPlayer.BackgroundTransparency = 1
+BotonListaPlayer.Size = UDim2.new(1, 0, 0, 35)
+BotonListaPlayer.Position = UDim2.new(0, 0, 0, 130)
+BotonListaPlayer.Text = "• Player"
+BotonListaPlayer.TextColor3 = Color3.fromRGB(180, 180, 180)
+BotonListaPlayer.TextSize = 14
+BotonListaPlayer.Font = Enum.Font.GothamBold
+
+local BotonListaSettings = Instance.new("TextButton")
+BotonListaSettings.Parent = ListaIzquierda
+BotonListaSettings.BackgroundTransparency = 1
+BotonListaSettings.Size = UDim2.new(1, 0, 0, 35)
+BotonListaSettings.Position = UDim2.new(0, 0, 0, 165)
+BotonListaSettings.Text = "• Settings"
+BotonListaSettings.TextColor3 = Color3.fromRGB(180, 180, 180)
+BotonListaSettings.TextSize = 14
+BotonListaSettings.Font = Enum.Font.GothamBold
+
+BotonListaPlayer.MouseButton1Click:Connect(function()
+    PaginaGeneral.Visible = false
+    PaginaCombat.Visible = false
+    PaginaPlayer.Visible = true
+    PaginaSettings.Visible = false
+    BotonListaGeneral.TextColor3 = Color3.fromRGB(180, 180, 180)
+    BotonLista2.TextColor3 = Color3.fromRGB(180, 180, 180)
+    BotonListaPlayer.TextColor3 = Color3.fromRGB(255, 255, 255)
+    BotonListaSettings.TextColor3 = Color3.fromRGB(180, 180, 180)
+end)
+
+BotonListaSettings.MouseButton1Click:Connect(function()
+    PaginaGeneral.Visible = false
+    PaginaCombat.Visible = false
+    PaginaPlayer.Visible = false
+    PaginaSettings.Visible = true
+    BotonListaGeneral.TextColor3 = Color3.fromRGB(180, 180, 180)
+    BotonLista2.TextColor3 = Color3.fromRGB(180, 180, 180)
+    BotonListaPlayer.TextColor3 = Color3.fromRGB(180, 180, 180)
+    BotonListaSettings.TextColor3 = Color3.fromRGB(255, 255, 255)
+end)
+
 
 -- 6. BOTÓN "X" PARA CERRAR EL MENÚ
 local BotonCerrar = Instance.new("TextButton")
@@ -163,11 +236,10 @@ BotonFlotante.Parent = ScreenGui
 BotonFlotante.BackgroundColor3 = Color3.fromRGB(120, 45, 110) 
 BotonFlotante.BorderSizePixel = 0
 BotonFlotante.Size = UDim2.new(0, 55, 0, 55)                
-BotonFlotante.Position = UDim2.new(0.05, 0, 0.2, 0)          
-BotonFlotante.Text = "OPEN"
-BotonFlotante.TextColor3 = Color3.fromRGB(255, 255, 255)
-BotonFlotante.TextSize = 12
-BotonFlotante.Font = Enum.Font.GothamBold
+BotonFlotante.Position = UDim2.new(1, -75, 0.5, -27)          
+BotonFlotante.Text = ""
+BotonFlotante.AutoButtonColor = true
+
 BotonFlotante.Active = true
 BotonFlotante.Draggable = true                               
 
@@ -281,36 +353,53 @@ end
 --==================================================
 -- INYECCIÓN DE CONTENIDOS EN LAS PESTAÑAS NATIVAS
 --==================================================
-createToggle(PaginaPrincipal, "Activar Súper Velocidad", false, function(state) SpeedEnabled = state end)
-createSlider(PaginaPrincipal, "Velocidad Máxima", 16, 300, 16, function(value) SpeedPercent = value end)
-createToggle(PaginaPrincipal, "Activar Súper Salto", false, function(state) JumpEnabled = state end)
-createSlider(PaginaPrincipal, "Fuerza de Salto", 50, 400, 50, function(value) JumpPercent = value end)
-createToggle(PaginaPrincipal, "Salto Infinito", false, function(state) InfiniteJumpEnabled = state end)
-createToggle(PaginaPrincipal, "Noclip (Atravesar Paredes)", false, function(state) NoclipEnabled = state end)
+createToggle(PaginaGeneral, "Activar Súper Velocidad", false, function(state) SpeedEnabled = state end)
+createSlider(PaginaGeneral, "Velocidad Máxima", 16, 300, 16, function(value) SpeedPercent = value end)
+createToggle(PaginaGeneral, "Activar Súper Salto", false, function(state) JumpEnabled = state end)
+createSlider(PaginaGeneral, "Fuerza de Salto", 50, 120, 60, function(value) JumpPercent = value end)
 
 createToggle(PaginaCombat, "Activar Aimbot", false, function(state) AimbotEnabled = state end)
 createSlider(PaginaCombat, "Suavizado de Cámara", 1, 10, 3, function(value) AimSmoothness = value / 10 end)
 createSlider(PaginaCombat, "Distancia Máxima Aim", 100, 1000, 500, function(value) AimMaxDistance = value end)
+createSlider(PaginaCombat, "FOV", 10, 100, 50, function(value) FOVPercent = value end)
+
+createToggle(PaginaPlayer, "Mostrar nombre del jugador", false, function(state)
+    -- Placeholder de interfaz: conserva la pestaña Player sin alterar otras funciones.
+end)
+
+createToggle(PaginaSettings, "Interfaz activa", true, function(state)
+    ScreenGui.Enabled = state
+end)
 
 --==================================================
 -- LOGICA EN BUCLE DETRÁS DE ESCENA
 --==================================================
 local function getClosestPlayer()
-local closestPart = nil
-local shortestDistance = AimMaxDistance
-for _, v in pairs(Players:GetPlayers()) do
-if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Head") and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
-local pos, onScreen = camera:WorldToViewportPoint(v.Character.Head.Position)
-if onScreen then
-local distance = (Vector2.new(pos.X, pos.Y) - UIS:GetMouseLocation()).Magnitude
-if distance < shortestDistance then
-closestPart = v.Character.Head
-shortestDistance = distance
-end
-end
-end
-end
-return closestPart
+    local closestPart = nil
+    local shortestDistance = AimMaxDistance
+
+    for _, v in pairs(Players:GetPlayers()) do
+        if v ~= player and v.Character
+            and v.Character:FindFirstChild("Head")
+            and v.Character:FindFirstChild("Humanoid")
+            and v.Character.Humanoid.Health > 0 then
+
+            local head = v.Character.Head
+            local pos, onScreen = camera:WorldToViewportPoint(head.Position)
+
+            if onScreen then
+                local screenDistance = (Vector2.new(pos.X, pos.Y) - UIS:GetMouseLocation()).Magnitude
+                local fovRadius = math.max(50, (FOVPercent / 100) * 500)
+
+                if screenDistance <= fovRadius and screenDistance < shortestDistance then
+                    closestPart = head
+                    shortestDistance = screenDistance
+                end
+            end
+        end
+    end
+
+    return closestPart
 end
 
 RunService.RenderStepped:Connect(function()
@@ -324,13 +413,9 @@ else
     char.Humanoid.UseJumpPower = true
     char.Humanoid.JumpPower = 50
 end
-if NoclipEnabled then
-for _, child in pairs(char:GetDescendants()) do
-if child:IsA("BasePart") and child.CanCollide == true then child.CanCollide = false end
-end
-end
-end
-if AimbotEnabled then
+    end
+    end
+    if AimbotEnabled then
 local target = getClosestPlayer()
 if target then
 camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position, target.Position), AimSmoothness)
