@@ -28,6 +28,7 @@ local FOVPercent = 50
 --==================================================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "MenuLargoConLista"
+ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
@@ -236,11 +237,13 @@ BotonFlotante.Parent = ScreenGui
 BotonFlotante.BackgroundColor3 = Color3.fromRGB(120, 45, 110) 
 BotonFlotante.BorderSizePixel = 0
 BotonFlotante.Size = UDim2.new(0, 55, 0, 55)                
-BotonFlotante.Position = UDim2.new(1, -75, 0.5, -27)          
+BotonFlotante.Position = UDim2.new(1, -75, 0.5, -27)
+BotonFlotante.Visible = true          
 BotonFlotante.Text = ""
 BotonFlotante.AutoButtonColor = true
 
 BotonFlotante.Active = true
+BotonFlotante.Selectable = true
 BotonFlotante.Draggable = true                               
 
 local RedondeadoFlotante = Instance.new("UICorner")
@@ -427,4 +430,12 @@ UIS.JumpRequest:Connect(function()
 if InfiniteJumpEnabled and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
 player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
 end
+end)
+
+
+UIS.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightShift then
+        MainFrame.Visible = not MainFrame.Visible
+    end
 end)
