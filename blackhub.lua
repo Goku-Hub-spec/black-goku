@@ -1,4 +1,4 @@
---// GOKU BLACK — DISEÑO LARGO PERSONALIZADO (COMPLETO)
+--// GOKU BLACK — DISEÑO LARGO PERSONALIZADO (COMPLETO Y PROBADO)
 --// Combinación de funciones de Aim/Movimiento con interfaz nativa semi-transparente
 
 local Players = game:GetService("Players")
@@ -32,17 +32,17 @@ ScreenGui.Name = "MenuLargoConLista"
 ScreenGui.Parent = player:WaitForChild("PlayerGui")
 ScreenGui.ResetOnSpawn = false
 
--- 2. VENTANA PRINCIPAL (Más larga a los costados: 450 de ancho, centrada y semi-transparente)
+-- 2. VENTANA PRINCIPAL (Más larga a los costados, centrada y semi-transparente)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "VentanaPrincipal"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25) 
-MainFrame.BackgroundTransparency = 0.35                 -- Semi-transparente
+MainFrame.BackgroundTransparency = 0.35                 
 MainFrame.BorderSizePixel = 0
-MainFrame.Size = UDim2.new(0, 450, 0, 300)             -- Más ancho (450) y alto estándar (300)
-MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)   -- Centrado exacto
+MainFrame.Size = UDim2.new(0, 450, 0, 300)             
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)   
 MainFrame.Active = true
-MainFrame.Draggable = true                             -- Se puede arrastrar por completo
+MainFrame.Draggable = true                             
 
 local RedondeadoFrame = Instance.new("UICorner")
 RedondeadoFrame.CornerRadius = UDim.new(0, 16)         
@@ -68,7 +68,7 @@ Titulo.BackgroundTransparency = 1
 Titulo.Size = UDim2.new(1, 0, 0, 40)
 Titulo.Position = UDim2.new(0, 0, 0, 15)
 Titulo.Text = "GOKU BLACK"
-Titulo.TextColor3 = Color3.fromRGB(220, 120, 210)  -- Color rosa/violeta característico
+Titulo.TextColor3 = Color3.fromRGB(220, 120, 210)  
 Titulo.TextSize = 15
 Titulo.Font = Enum.Font.GothamBold
 
@@ -114,7 +114,6 @@ PaginaCombat.Position = UDim2.fromOffset(135, 50)
 PaginaCombat.ScrollBarThickness = 3
 PaginaCombat.Visible = false
 
--- Ajustar diseños de lista automáticos para las páginas
 local layout1 = Instance.new("UIListLayout")
 layout1.Padding = UDim.new(0, 6)
 layout1.Parent = PaginaPrincipal
@@ -123,7 +122,6 @@ local layout2 = Instance.new("UIListLayout")
 layout2.Padding = UDim.new(0, 6)
 layout2.Parent = PaginaCombat
 
--- Sistema de navegación entre las dos pestañas de tu lista
 BotonLista1.MouseButton1Click:Connect(function()
     PaginaPrincipal.Visible = true
     PaginaCombat.Visible = false
@@ -162,7 +160,7 @@ end)
 local BotonFlotante = Instance.new("TextButton")
 BotonFlotante.Name = "BotonFlotanteAbrir"
 BotonFlotante.Parent = ScreenGui
-BotonFlotante.BackgroundColor3 = Color3.fromRGB(120, 45, 110) -- Violeta original de tu menú
+BotonFlotante.BackgroundColor3 = Color3.fromRGB(120, 45, 110) 
 BotonFlotante.BorderSizePixel = 0
 BotonFlotante.Size = UDim2.new(0, 55, 0, 55)                
 BotonFlotante.Position = UDim2.new(0.05, 0, 0.2, 0)          
@@ -267,4 +265,81 @@ local function createSlider(parent, text, minVal, maxVal, default, callback)
         end
     end)
     UIS.InputChanged:Connect(function(input)
-Usa el código con precaución.if holding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) thenupdateValue(input)endend)UIS.InputEnded:Connect(function(input)if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch thenholding = falseendend)end--==================================================-- INYECCIÓN DE CONTENIDOS EN LAS PESTAÑAS NATIVAS--==================================================-- PESTAÑA PRINCIPAL (Físicas de Movimiento)createToggle(PaginaPrincipal, "Activar Súper Velocidad", false, function(state) SpeedEnabled = state end)createSlider(PaginaPrincipal, "Velocidad Máxima", 16, 300, 16, function(value) SpeedPercent = value end)createToggle(PaginaPrincipal, "Activar Súper Salto", false, function(state) JumpEnabled = state end)createSlider(PaginaPrincipal, "Fuerza de Salto", 50, 400, 50, function(value) JumpPercent = value end)createToggle(PaginaPrincipal, "Salto Infinito", false, function(state) InfiniteJumpEnabled = state end)createToggle(PaginaPrincipal, "Noclip (Atravesar Paredes)", false, function(state) NoclipEnabled = state end)-- PESTAÑA COMBAT (Aimbot)createToggle(PaginaCombat, "Activar Aimbot", false, function(state) AimbotEnabled = state end)createSlider(PaginaCombat, "Suavizado de Cámara", 1, 10, 3, function(value) AimSmoothness = value / 10 end)createSlider(PaginaCombat, "Distancia Máxima Aim", 100, 1000, 500, function(value) AimMaxDistance = value end)--==================================================-- LOGICA EN BUCLE DETRÁS DE ESCENA--==================================================local function getClosestPlayer()local closestPart = nillocal shortestDistance = AimMaxDistancefor _, v in pairs(Players:GetPlayers()) doif v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Head") and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 thenlocal pos, onScreen = camera:WorldToViewportPoint(v.Character.Head.Position)if onScreen thenlocal distance = (Vector2.new(pos.X, pos.Y) - UIS:GetMouseLocation()).Magnitudeif distance < shortestDistance thenclosestPart = v.Character.HeadshortestDistance = distanceendendendendreturn closestPartendRunService.RenderStepped:Connect(function()local char = player.Characterif char and char:FindFirstChild("Humanoid") thenif SpeedEnabled then char.Humanoid.WalkSpeed = SpeedPercent else char.Humanoid.WalkSpeed = 16 endif JumpEnabled then char.Humanoid.JumpPower = JumpPercent char.Humanoid.UseJumpPower = true endif NoclipEnabled thenfor _, child in pairs(char:GetDescendants()) doif child:IsA("BasePart") and child.CanCollide == true then child.CanCollide = false endendendendif AimbotEnabled thenlocal target = getClosestPlayer()if target thencamera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position, target.Position), AimSmoothness)endendend)UIS.JumpRequest:Connect(function()if InfiniteJumpEnabled and player.Character and player.Character:FindFirstChildOfClass("Humanoid") thenplayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")endend)
+        if holding and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateValue(input)
+        end
+    end)
+    UIS.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            holding = false
+        end
+    end)
+end
+
+
+
+--==================================================
+-- INYECCIÓN DE CONTENIDOS EN LAS PESTAÑAS NATIVAS
+--==================================================
+createToggle(PaginaPrincipal, "Activar Súper Velocidad", false, function(state) SpeedEnabled = state end)
+createSlider(PaginaPrincipal, "Velocidad Máxima", 16, 300, 16, function(value) SpeedPercent = value end)
+createToggle(PaginaPrincipal, "Activar Súper Salto", false, function(state) JumpEnabled = state end)
+createSlider(PaginaPrincipal, "Fuerza de Salto", 50, 400, 50, function(value) JumpPercent = value end)
+createToggle(PaginaPrincipal, "Salto Infinito", false, function(state) InfiniteJumpEnabled = state end)
+createToggle(PaginaPrincipal, "Noclip (Atravesar Paredes)", false, function(state) NoclipEnabled = state end)
+
+createToggle(PaginaCombat, "Activar Aimbot", false, function(state) AimbotEnabled = state end)
+createSlider(PaginaCombat, "Suavizado de Cámara", 1, 10, 3, function(value) AimSmoothness = value / 10 end)
+createSlider(PaginaCombat, "Distancia Máxima Aim", 100, 1000, 500, function(value) AimMaxDistance = value end)
+
+--==================================================
+-- LOGICA EN BUCLE DETRÁS DE ESCENA
+--==================================================
+local function getClosestPlayer()
+local closestPart = nil
+local shortestDistance = AimMaxDistance
+for _, v in pairs(Players:GetPlayers()) do
+if v ~= player and v.Character and v.Character:FindFirstChild("HumanoidRootPart") and v.Character:FindFirstChild("Head") and v.Character:FindFirstChild("Humanoid") and v.Character.Humanoid.Health > 0 then
+local pos, onScreen = camera:WorldToViewportPoint(v.Character.Head.Position)
+if onScreen then
+local distance = (Vector2.new(pos.X, pos.Y) - UIS:GetMouseLocation()).Magnitude
+if distance < shortestDistance then
+closestPart = v.Character.Head
+shortestDistance = distance
+end
+end
+end
+end
+return closestPart
+end
+
+RunService.RenderStepped:Connect(function()
+local char = player.Character
+if char and char:FindFirstChild("Humanoid") then
+if SpeedEnabled then char.Humanoid.WalkSpeed = SpeedPercent else char.Humanoid.WalkSpeed = 16 end
+if JumpEnabled then
+    char.Humanoid.UseJumpPower = true
+    char.Humanoid.JumpPower = JumpPercent
+else
+    char.Humanoid.UseJumpPower = true
+    char.Humanoid.JumpPower = 50
+end
+if NoclipEnabled then
+for _, child in pairs(char:GetDescendants()) do
+if child:IsA("BasePart") and child.CanCollide == true then child.CanCollide = false end
+end
+end
+end
+if AimbotEnabled then
+local target = getClosestPlayer()
+if target then
+camera.CFrame = camera.CFrame:Lerp(CFrame.new(camera.CFrame.Position, target.Position), AimSmoothness)
+end
+end
+end)
+
+UIS.JumpRequest:Connect(function()
+if InfiniteJumpEnabled and player.Character and player.Character:FindFirstChildOfClass("Humanoid") then
+player.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+end
+end)
