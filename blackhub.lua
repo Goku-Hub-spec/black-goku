@@ -1,266 +1,464 @@
--- ==========================================
--- GOKU BLACK | Block Spin (Premium Custom Edition)
--- Created by Luis Dev
--- ==========================================
+--// ÁRABE HUB
+--// WindUI
+
+local WindUI = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/Footagesus/WindUI/main/dist/main.lua"
+))()
+
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Workspace = game:GetService("Workspace")
 local RunService = game:GetService("RunService")
-local Camera = Workspace.CurrentCamera
-local CoreGui = game:GetService("CoreGui")
-local TweenService = game:GetService("TweenService")
 local Lighting = game:GetService("Lighting")
+local Workspace = game:GetService("Workspace")
 local UserInputService = game:GetService("UserInputService")
-local SoundService = game:GetService("SoundService")
+local CoreGui = game:GetService("CoreGui")
 
-local WindUI = loadstring(game:HttpGet("https://github.com"))()
+local LocalPlayer = Players.LocalPlayer
 
+--// WINDOW
 local Window = WindUI:CreateWindow({
-    Title = "GOKU BLACK | Block Spin",
-    Icon = "rbxassetid://72957354226500",
-    Size = UDim2.fromOffset(480, 360),
-    Theme = "Indigo",
-    Acrylic = true,
-    Transparent = false,
+    Title = "Árabe Hub",
+    Icon = "star",
+    Theme = "Dark",
+
+    Topbar = {
+        Height = 44,
+        ButtonsType = "Mac",
+    },
+
+    OpenButton = {
+        Enabled = false,
+    },
 })
 
-local TabMain = Window:Tab({ Title = "MAIN", Icon = "house" })
-local TabCombat = Window:Tab({ Title = "COMBAT", Icon = "crosshair" })
-local TabPlayer = Window:Tab({ Title = "PLAYER", Icon = "user" })
-local TabVisual = Window:Tab({ Title = "VISUAL", Icon = "eye" })
+--// BOTÓN FLOTANTE
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "ArabeHubFloatingButton"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = CoreGui
 
--- ==========================================
--- HUB INFO (MAIN TAB)
--- ==========================================
-TabMain:Section({ Title = "Hub Information" })
-TabMain:Paragraph({
-    Title = "Created by Luis Dev",
-    Desc = "GOKU BLACK - Block Spin Custom Edition",
-})
+local FloatButton = Instance.new("ImageButton")
+FloatButton.Name = "OpenCloseButton"
+FloatButton.Size = UDim2.fromOffset(50, 50)
+FloatButton.Position = UDim2.new(0, 20, 0.5, -25)
+FloatButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+FloatButton.BackgroundTransparency = 0.05
+FloatButton.Image = "rbxassetid://132693337850412"
+FloatButton.ImageTransparency = 0
+FloatButton.ScaleType = Enum.ScaleType.Crop
+FloatButton.AutoButtonColor = false
+FloatButton.ZIndex = 100
+FloatButton.Parent = ScreenGui
 
-TabMain:Section({ Title = "Hub Utilities" })
-local enabledSkip = false
-TabMain:Toggle({
-    Title = "Crate Skip (Fast Open)",
-    Default = false,
-    Callback = function(state)
-        enabledSkip = state
-    end
-})
+local Corner = Instance.new("UICorner")
+Corner.CornerRadius = UDim.new(0, 13)
+Corner.Parent = FloatButton
 
-task.spawn(function()
-    while true do
-        if enabledSkip then
-            pcall(function()
-                local modules = ReplicatedStorage:FindFirstChild("Modules")
-                local crateMod = modules and modules:FindFirstChild("Game") and modules.Game:FindFirstChild("CrateSystem") and modules.Game.CrateSystem:FindFirstChild("Crate")
-                if crateMod then
-                    local CrateController = require(crateMod)
-                    if CrateController and CrateController.class and CrateController.class.objects then
-                        for _, crate in pairs(CrateController.class.objects) do
-                            if crate.states and crate.states.open then crate.states.open.set(true) end
-                            if CrateController.skipping and CrateController.skipping.set then CrateController.skipping.set(true) end
-                        end
-                    end
-                end
-            end)
-            task.wait(0.1)
-        else
-            task.wait(1)
-        end
-    end
+local Stroke = Instance.new("UIStroke")
+Stroke.Color = Color3.fromRGB(180, 25, 40)
+Stroke.Thickness = 2
+Stroke.Transparency = 0.15
+Stroke.Parent = FloatButton
+
+--// ABRIR / CERRAR
+FloatButton.MouseButton1Click:Connect(function()
+    Window:Toggle()
 end)
 
--- ==========================================
--- ADVANCED COMBAT (SILENT AIM & NO RECOIL)
--- ==========================================
-local fovLines = {}
-local fovEnabled = false
-local fovRadius = 120
-local numLines = 16
-local SilentAimEnabled = false
-local CurrentLockedTarget = nil
+--// ARRASTRAR BOTÓN
+local dragging = false
+local dragStart
+local startPos
 
-pcall(function()
-    if Drawing and Drawing.new then
-        for i = 1, numLines do
-            local line = Drawing.new("Line")
-            line.Visible = false
-            line.Thickness = 2
-            table.insert(fovLines, line)
-        end
-    end
-end)
+FloatButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
 
-local function getClosestPlayerInFOV()
-    local bestTarget = nil
-    local shortestDist = 999999
-    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    
-    for _, pl in ipairs(Players:GetPlayers()) do
-        if pl ~= LocalPlayer and pl.Character and pl.Character:FindFirstChild("Head") then
-            local hum = pl.Character:FindFirstChild("Humanoid")
-            if hum and hum.Health > 0 then
-                local screenPos, onScreen = Camera:WorldToViewportPoint(pl.Character.Head.Position)
-                if onScreen then
-                    local screenDist = (Vector2.new(screenPos.X, screenPos.Y) - center).Magnitude
-                    if screenDist <= fovRadius and screenDist < shortestDist then
-                        shortestDist = screenDist
-                        bestTarget = pl
-                    end
-                end
-            end
-        end
-    end
-    return bestTarget
-end
+        dragging = true
+        dragStart = input.Position
+        startPos = FloatButton.Position
 
--- HOOK DE REMOTOS ASIGNADO CORRECTAMENTE CON ÍNDICES FIJOS
-local RemoteFolder = ReplicatedStorage:FindFirstChild("Remotes")
-local SendRemote = RemoteFolder and RemoteFolder:FindFirstChild("Send")
-if SendRemote and hookfunction then
-    local originalFireServer
-    originalFireServer = hookfunction(SendRemote.FireServer, function(self, ...)
-        if self ~= SendRemote then return originalFireServer(self, ...) end
-        local args = {...}
-        if SilentAimEnabled and args[2] == "shoot_gun" and CurrentLockedTarget and CurrentLockedTarget.Character then
-            local hitPart = CurrentLockedTarget.Character:FindFirstChild("Head") or CurrentLockedTarget.Character:FindFirstChild("HumanoidRootPart")
-            local myHead = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head")
-            if hitPart and myHead then
-                args[4] = CFrame.new(myHead.Position, hitPart.Position)
-                args[5] = {
-                    [1] = {
-                        [1] = {
-                            Instance = hitPart,
-                            Normal = Vector3.new(0, 1, 0),
-                            Position = hitPart.Position
-                        }
-                    }
-                }
-            end
-        end
-        return originalFireServer(self, unpack(args))
-    end)
-end
-
-RunService.RenderStepped:Connect(function()
-    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    if fovEnabled and #fovLines > 0 then
-        local timeVal = tick() * 0.6
-        for i, line in ipairs(fovLines) do
-            local angle1 = math.rad((i - 1) * (360 / numLines))
-            local angle2 = math.rad(i * (360 / numLines))
-            line.From = center + Vector2.new(math.cos(angle1), math.sin(angle1)) * fovRadius
-            line.To = center + Vector2.new(math.cos(angle2), math.sin(angle2)) * fovRadius
-            line.Color = Color3.fromHSV((timeVal + (i / numLines)) % 1, 1, 1)
-            line.Visible = true
-        end
-    else
-        for _, line in ipairs(fovLines) do line.Visible = false end
-    end
-    CurrentLockedTarget = SilentAimEnabled and getClosestPlayerInFOV() or nil
-end)
-
-TabCombat:Section({ Title = "Targeting" })
-TabCombat:Toggle({
-    Title = "Enable Silent Aim",
-    Default = false,
-    Callback = function(state) SilentAimEnabled = state end
-})
-TabCombat:Toggle({
-    Title = "Show Rainbow FOV Circle",
-    Default = false,
-    Callback = function(state) fovEnabled = state end
-})
-TabCombat:Slider({
-    Title = "Field of View Size",
-    Step = 5,
-    Value = { Min = 30, Max = 300, Default = 120 },
-    Callback = function(value) fovRadius = value end
-})
-
--- ==========================================
--- PLAYER MECHANICS (STAMINA & SPEED)
--- ==========================================
-TabPlayer:Section({ Title = "Stamina & Movement" })
-
-local InfStaminaEnabled = false
-local OriginalSprintUpdate = nil
-TabPlayer:Toggle({
-    Title = "Infinite Stamina",
-    Default = false,
-    Callback = function(enable)
-        InfStaminaEnabled = enable
-        pcall(function()
-            local success, sprintModule = pcall(function() return require(ReplicatedStorage.Modules.Game.Sprint) end)
-            if success and sprintModule then
-                local upvals = getupvalues(sprintModule.consume_stamina)
-                local sprintBar
-                for _, uv in ipairs(upvals) do
-                    if type(uv) == "table" and rawget(uv, "sprint_bar") then
-                        sprintBar = uv.sprint_bar
-                        break
-                    end
-                end
-                if sprintBar then
-                    if enable then
-                        OriginalSprintUpdate = sprintBar.update
-                        sprintBar.update = function(...) return OriginalSprintUpdate(function() return 1 end) end
-                    else
-                        if OriginalSprintUpdate then sprintBar.update = OriginalSprintUpdate end
-                    end
-                end
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
             end
         end)
     end
-})
+end)
 
-local SpeedHackEnabled = false
-local SpeedValue = 4
-TabPlayer:Toggle({
-    Title = "Enable Speed Modification",
-    Default = false,
-    Callback = function(state) SpeedHackEnabled = state end
-})
-TabPlayer:Slider({
-    Title = "Velocity Mult (Max 20)",
-    Step = 1,
-    Value = { Min = 1, Max = 20, Default = 4 },
-    Callback = function(value) SpeedValue = value end
-})
+UserInputService.InputChanged:Connect(function(input)
+    if not dragging then
+        return
+    end
 
-RunService.RenderStepped:Connect(function(dt)
-    if SpeedHackEnabled and LocalPlayer.Character then
-        local hum = LocalPlayer.Character:FindFirstChild("Humanoid")
-        local root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
-        if hum and root and hum.MoveDirection.Magnitude > 0 then
-            root.CFrame = root.CFrame + (hum.MoveDirection.Unit * ((SpeedValue / 20) * 1.8 * 14 * dt))
-        end
+    if input.UserInputType == Enum.UserInputType.MouseMovement
+        or input.UserInputType == Enum.UserInputType.Touch then
+
+        local delta = input.Position - dragStart
+
+        FloatButton.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
     end
 end)
 
--- ==========================================
--- VISUALS & FRIEND TRACKING
--- ==========================================
-TabVisual:Section({ Title = "Tracking & ESP" })
+--// GENERAL
+local GeneralTab = Window:Tab({
+    Title = "General",
+    Icon = "home",
+})
 
-local trackedFriends = {}
-local namesESPEnabled = false
+GeneralTab:Section({
+    Title = "Árabe Hub",
+})
 
-local function updateFriendList()
-    table.clear(trackedFriends)
+--// COMBAT
+local CombatTab = Window:Tab({
+    Title = "Combat",
+    Icon = "swords",
+})
+
+CombatTab:Section({
+    Title = "Combat",
+})
+
+--// FOV CIRCLE
+local FOVEnabled = false
+local FOVPercent = 50
+
+local FOVGui = Instance.new("ScreenGui")
+FOVGui.Name = "ArabeHubFOV"
+FOVGui.ResetOnSpawn = false
+FOVGui.IgnoreGuiInset = true
+FOVGui.Enabled = false
+FOVGui.Parent = CoreGui
+
+local FOVCircle = Instance.new("Frame")
+FOVCircle.Name = "FOVCircle"
+FOVCircle.AnchorPoint = Vector2.new(0.5, 0.5)
+FOVCircle.Position = UDim2.fromScale(0.5, 0.5)
+FOVCircle.Size = UDim2.fromOffset(275, 275)
+FOVCircle.BackgroundTransparency = 1
+FOVCircle.Parent = FOVGui
+
+local FOVCorner = Instance.new("UICorner")
+FOVCorner.CornerRadius = UDim.new(1, 0)
+FOVCorner.Parent = FOVCircle
+
+local FOVStroke = Instance.new("UIStroke")
+FOVStroke.Thickness = 2
+FOVStroke.Transparency = 0.15
+FOVStroke.Color = Color3.fromRGB(255, 255, 255)
+FOVStroke.Parent = FOVCircle
+
+local function UpdateFOV()
+    local size = 50 + (FOVPercent * 4.5)
+    FOVCircle.Size = UDim2.fromOffset(size, size)
+end
+
+UpdateFOV()
+
+CombatTab:Toggle({
+    Title = "FOV Circle",
+    Desc = "Muestra un círculo de FOV en el centro.",
+    Value = false,
+
+    Callback = function(Value)
+        FOVEnabled = Value
+        FOVGui.Enabled = Value
+
+        WindUI:Notify({
+            Title = "FOV Circle",
+            Content = Value and "Activado." or "Desactivado.",
+            Duration = 3,
+        })
+    end,
+})
+
+CombatTab:Slider({
+    Title = "FOV",
+    Desc = "Tamaño del círculo.",
+    Step = 1,
+
+    Value = {
+        Min = 1,
+        Max = 100,
+        Default = 50,
+    },
+
+    Callback = function(Value)
+        FOVPercent = Value
+        UpdateFOV()
+    end,
+})
+
+--// PLAYER
+local PlayerTab = Window:Tab({
+    Title = "Player",
+    Icon = "user",
+})
+
+PlayerTab:Section({
+    Title = "Player",
+})
+
+--// DISTANCIA
+local DistanceEnabled = false
+local DistanceLabels = {}
+local DistanceConnection
+
+local function RemoveDistance(player)
+    if DistanceLabels[player] then
+        DistanceLabels[player]:Destroy()
+        DistanceLabels[player] = nil
+    end
+end
+
+local function CreateDistance(player)
+    if player == LocalPlayer then
+        return
+    end
+
+    local character = player.Character
+    if not character then
+        return
+    end
+
+    local root = character:FindFirstChild("HumanoidRootPart")
+    if not root then
+        return
+    end
+
+    RemoveDistance(player)
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Name = "DistanceDisplay"
+    billboard.Adornee = root
+    billboard.Size = UDim2.fromOffset(120, 30)
+    billboard.StudsOffset = Vector3.new(0, 3.5, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = root
+
+    local label = Instance.new("TextLabel")
+    label.BackgroundTransparency = 1
+    label.Size = UDim2.fromScale(1, 1)
+    label.TextScaled = true
+    label.Font = Enum.Font.GothamBold
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.Text = "0 m"
+    label.Parent = billboard
+
+    DistanceLabels[player] = billboard
+end
+
+local function UpdateDistances()
+    if not DistanceEnabled then
+        return
+    end
+
+    local myCharacter = LocalPlayer.Character
+    local myRoot = myCharacter
+        and myCharacter:FindFirstChild("HumanoidRootPart")
+
+    if not myRoot then
+        return
+    end
+
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and LocalPlayer:IsFriendsWith(player.UserId) then
-            table.insert(trackedFriends, player.Name)
+        if player ~= LocalPlayer then
+
+            local character = player.Character
+            local root = character
+                and character:FindFirstChild("HumanoidRootPart")
+
+            if root then
+
+                if not DistanceLabels[player] then
+                    CreateDistance(player)
+                end
+
+                local billboard = DistanceLabels[player]
+
+                if billboard then
+
+                    local label =
+                        billboard:FindFirstChildOfClass("TextLabel")
+
+                    if label then
+
+                        local distance =
+                            (myRoot.Position - root.Position).Magnitude
+
+                        label.Text = string.format(
+                            "%d m",
+                            math.floor(distance + 0.5)
+                        )
+                    end
+                end
+
+            else
+                RemoveDistance(player)
+            end
         end
     end
 end
 
-TabVisual:Toggle({
-    Title = "Active Player Names ESP",
-    Default = false,
-    Callback = function(state)
-        namesESPEnabled = state
-        for _, p in ipairs(Players:GetPlayers()) do
-Usa el código con precaución.if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") thenlocal currentEsp = p.Character.Head:FindFirstChild("FriendBillboard")if currentEsp then currentEsp:Destroy() endif state thenlocal isFriend = LocalPlayer:IsFriendsWith(p.UserId)local billboard = Instance.new("BillboardGui", p.Character.Head)billboard.Name = "FriendBillboard"billboard.Size = UDim2.new(0, 150, 0, 30)billboard.AlwaysOnTop = truebillboard.StudsOffset = Vector3.new(0, 2, 0)local label = Instance.new("TextLabel", billboard)label.Size = UDim2.new(1, 0, 1, 0)label.BackgroundTransparency = 1label.Text = p.Name .. (isFriend and " [FRIEND]" or "")label.TextColor3 = isFriend and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 255, 255)label.Font = Enum.Font.GothamBoldlabel.TextSize = 12endendendend})TabVisual:Section({ Title = "Your Network Friends" })Players.PlayerAdded:Connect(updateFriendList)Players.PlayerRemoving:Connect(updateFriendList)updateFriendList()task.spawn(function()task.wait(1)print("--- [GOKU BLACK] Amigos Conectados ---")if #trackedFriends == 0 then print("Ninguno") elsefor _, name in ipairs(trackedFriends) do print("- " .. name) endendend)WindUI:Notify({Title = "GOKU BLACK | Luis Dev Edition",Content = "Menú seguro y modificado cargado de forma independiente.",Duration = 4})
+local function SetDistance(enabled)
+
+    DistanceEnabled = enabled
+
+    if enabled then
+
+        for _, player in ipairs(Players:GetPlayers()) do
+            CreateDistance(player)
+        end
+
+        if not DistanceConnection then
+            DistanceConnection =
+                RunService.RenderStepped:Connect(UpdateDistances)
+        end
+
+        WindUI:Notify({
+            Title = "Distancia",
+            Content = "Distancia activada.",
+            Duration = 3,
+        })
+
+    else
+
+        for player in pairs(DistanceLabels) do
+            RemoveDistance(player)
+        end
+
+        if DistanceConnection then
+            DistanceConnection:Disconnect()
+            DistanceConnection = nil
+        end
+
+        WindUI:Notify({
+            Title = "Distancia",
+            Content = "Distancia desactivada.",
+            Duration = 3,
+        })
+    end
+end
+
+Players.PlayerRemoving:Connect(function(player)
+    RemoveDistance(player)
+end)
+
+Players.PlayerAdded:Connect(function(player)
+
+    player.CharacterAdded:Connect(function()
+
+        if DistanceEnabled then
+            task.wait(0.5)
+            CreateDistance(player)
+        end
+
+    end)
+
+end)
+
+PlayerTab:Section({
+    Title = "Visual",
+})
+
+PlayerTab:Toggle({
+    Title = "Distancia",
+    Desc = "Muestra la distancia de cada jugador en metros.",
+    Value = false,
+
+    Callback = function(Value)
+        SetDistance(Value)
+    end,
+})
+
+--// SETTINGS
+local SettingsTab = Window:Tab({
+    Title = "Settings",
+    Icon = "settings",
+})
+
+SettingsTab:Section({
+    Title = "Performance",
+})
+
+--// FPS BOOSTER
+local FPSBoostEnabled = false
+
+local SavedLighting = {
+    GlobalShadows = Lighting.GlobalShadows,
+    FogEnd = Lighting.FogEnd,
+    Brightness = Lighting.Brightness,
+}
+
+local SavedEffects = {}
+
+local function SetFPSBoost(enabled)
+
+    FPSBoostEnabled = enabled
+
+    if enabled then
+
+        Lighting.GlobalShadows = false
+        Lighting.FogEnd = 100000
+        Lighting.Brightness = 1
+
+        for _, obj in ipairs(Workspace:GetDescendants()) do
+
+            if obj:IsA("ParticleEmitter")
+                or obj:IsA("Trail")
+                or obj:IsA("Beam")
+                or obj:IsA("Smoke")
+                or obj:IsA("Fire") then
+
+                if SavedEffects[obj] == nil then
+                    SavedEffects[obj] = obj.Enabled
+                end
+
+                obj.Enabled = false
+            end
+        end
+
+        WindUI:Notify({
+            Title = "FPS Booster",
+            Content = "Optimización visual activada.",
+            Duration = 3,
+        })
+
+    else
+
+        Lighting.GlobalShadows = SavedLighting.GlobalShadows
+        Lighting.FogEnd = SavedLighting.FogEnd
+        Lighting.Brightness = SavedLighting.Brightness
+
+        for obj, state in pairs(SavedEffects) do
+
+            if obj and obj.Parent then
+                obj.Enabled = state
+            end
+        end
+
+        SavedEffects = {}
+
+        WindUI:Notify({
+            Title = "FPS Booster",
+            Content = "Optimización visual desactivada.",
+            Duration = 3,
+        })
+    end
+end
+
+SettingsTab:Toggle({
+    Title = "FPS Booster",
+    Desc = "Reduce efectos visuales para mejorar el rendimiento.",
+    Value = false,
+
+    Callback = function(Value)
+        SetFPSBoost(Value)
+    end,
+})
