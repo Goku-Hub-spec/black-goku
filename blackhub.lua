@@ -31,7 +31,7 @@ local TabPlayer = Window:Tab({ Title = "PLAYER", Icon = "user" })
 local TabVisual = Window:Tab({ Title = "VISUAL", Icon = "eye" })
 
 -- ==========================================
--- MONETIZATION & HUB INFO (MAIN TAB)
+-- HUB INFO (MAIN TAB)
 -- ==========================================
 TabMain:Section({ Title = "Hub Information" })
 TabMain:Paragraph({
@@ -116,6 +116,7 @@ local function getClosestPlayerInFOV()
     return bestTarget
 end
 
+-- HOOK DE REMOTOS ASIGNADO CORRECTAMENTE CON ÍNDICES FIJOS
 local RemoteFolder = ReplicatedStorage:FindFirstChild("Remotes")
 local SendRemote = RemoteFolder and RemoteFolder:FindFirstChild("Send")
 if SendRemote and hookfunction then
@@ -127,12 +128,16 @@ if SendRemote and hookfunction then
             local hitPart = CurrentLockedTarget.Character:FindFirstChild("Head") or CurrentLockedTarget.Character:FindFirstChild("HumanoidRootPart")
             local myHead = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Head")
             if hitPart and myHead then
-                -- Argumentos y asignaciones fijas con sintaxis Luau correcta
                 args[4] = CFrame.new(myHead.Position, hitPart.Position)
-                if type(args[5]) == "table" and args[5][1] and args[5][1][1] then
-                    args[5][1][1].Instance = hitPart
-                    args[5][1][1].Position = hitPart.Position
-                end
+                args[5] = {
+                    [1] = {
+                        [1] = {
+                            Instance = hitPart,
+                            Normal = Vector3.new(0, 1, 0),
+                            Position = hitPart.Position
+                        }
+                    }
+                }
             end
         end
         return originalFireServer(self, unpack(args))
@@ -176,7 +181,7 @@ TabCombat:Slider({
 })
 
 -- ==========================================
--- CUSTOM PLAYER MECHANICS (STAMINA & SPEED)
+-- PLAYER MECHANICS (STAMINA & SPEED)
 -- ==========================================
 TabPlayer:Section({ Title = "Stamina & Movement" })
 
@@ -236,7 +241,7 @@ RunService.RenderStepped:Connect(function(dt)
 end)
 
 -- ==========================================
--- VISUALS & DETAILED FRIEND TRACKING
+-- VISUALS & FRIEND TRACKING
 -- ==========================================
 TabVisual:Section({ Title = "Tracking & ESP" })
 
@@ -258,5 +263,4 @@ TabVisual:Toggle({
     Callback = function(state)
         namesESPEnabled = state
         for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
-Usa el código con precaución.local currentEsp = p.Character.Head:FindFirstChild("FriendBillboard")if currentEsp then currentEsp:Destroy() endif state thenlocal isFriend = LocalPlayer:IsFriendsWith(p.UserId)local billboard = Instance.new("BillboardGui", p.Character.Head)billboard.Name = "FriendBillboard"billboard.Size = UDim2.new(0, 150, 0, 30)billboard.AlwaysOnTop = truebillboard.StudsOffset = Vector3.new(0, 2, 0)local label = Instance.new("TextLabel", billboard)label.Size = UDim2.new(1, 0, 1, 0)label.BackgroundTransparency = 1label.Text = p.Name .. (isFriend and " [FRIEND]" or "")label.TextColor3 = isFriend and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 255, 255)label.Font = Enum.Font.GothamBoldlabel.TextSize = 12endendendend})TabVisual:Section({ Title = "Your Network Friends" })Players.PlayerAdded:Connect(updateFriendList)Players.PlayerRemoving:Connect(updateFriendList)updateFriendList()task.spawn(function()task.wait(1)print("--- [GOKU BLACK] Amigos Conectados ---")if #trackedFriends == 0 then print("Ninguno") elsefor _, name in ipairs(trackedFriends) do print("- " .. name) endendend)WindUI:Notify({Title = "GOKU BLACK | Luis Dev Edition",Content = "Menú seguro y modificado cargado de forma independiente.",Duration = 4})
+Usa el código con precaución.if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") thenlocal currentEsp = p.Character.Head:FindFirstChild("FriendBillboard")if currentEsp then currentEsp:Destroy() endif state thenlocal isFriend = LocalPlayer:IsFriendsWith(p.UserId)local billboard = Instance.new("BillboardGui", p.Character.Head)billboard.Name = "FriendBillboard"billboard.Size = UDim2.new(0, 150, 0, 30)billboard.AlwaysOnTop = truebillboard.StudsOffset = Vector3.new(0, 2, 0)local label = Instance.new("TextLabel", billboard)label.Size = UDim2.new(1, 0, 1, 0)label.BackgroundTransparency = 1label.Text = p.Name .. (isFriend and " [FRIEND]" or "")label.TextColor3 = isFriend and Color3.fromRGB(0, 255, 120) or Color3.fromRGB(255, 255, 255)label.Font = Enum.Font.GothamBoldlabel.TextSize = 12endendendend})TabVisual:Section({ Title = "Your Network Friends" })Players.PlayerAdded:Connect(updateFriendList)Players.PlayerRemoving:Connect(updateFriendList)updateFriendList()task.spawn(function()task.wait(1)print("--- [GOKU BLACK] Amigos Conectados ---")if #trackedFriends == 0 then print("Ninguno") elsefor _, name in ipairs(trackedFriends) do print("- " .. name) endendend)WindUI:Notify({Title = "GOKU BLACK | Luis Dev Edition",Content = "Menú seguro y modificado cargado de forma independiente.",Duration = 4})
